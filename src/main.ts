@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import {
   CardChipDelete,
@@ -21,11 +21,11 @@ export type PropListArray = PropList[];
   template: `
     <h1>Generic Component</h1>
     <app-card-chip-delete 
-      [data]="list" 
-      (accept)="a($event)" 
-      [resolveKey]="resolveKey"
-      [resolveChipText]="resolveChipText"
-      [resolveMessageText]="resolveMessageText"
+      [(data)]="list" 
+      [key]="resolveKey"
+      [chipText]="resolveChipText"
+      [messageText]="resolveMessageText"
+      (accept)="optimisticUpdate($event)" 
       />
   `,
 })
@@ -45,7 +45,7 @@ export class App implements ICardChipDelete<PropList> {
   }
 
   name = 'Angular';
-  list: PropListArray = [
+  list = signal<PropListArray>([
     {
       prop: '1',
       prop2: 123,
@@ -74,9 +74,19 @@ export class App implements ICardChipDelete<PropList> {
         prop4: 'hola4',
       },
     },
-  ];
-  a($event: PropList) {
-    alert($event.prop3.prop4);
+  ]);
+
+  optimisticUpdate($event: PropList) {
+    try {
+      console.log($event.prop3.prop4);
+      throw new Error('optimistic simulation')
+    } catch (error) {
+      this.list.update(
+        (v)=>[...v,$event].sort(
+          (a,b)=>a.prop2 - b.prop2
+        )
+      )
+    }
   }
 }
 

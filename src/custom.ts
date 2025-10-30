@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, input, linkedSignal, output, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, input, linkedSignal, model, output, signal, viewChild } from '@angular/core';
 
 export type ResolvePropsAvailable = string | number;
 export type ResolveProps<T> = (
@@ -29,13 +29,13 @@ export interface ICardChipDelete<T> {
    <dialog #dialog closedby="none">
       <form method="dialog">
         <p #message>&nbsp;</p>
-        <button (click)="cancel()" autofocus>Cancelar</button>
+        <button autofocus>Cancelar</button>
         <button (click)="accepted()">Aceptar</button>
       </form>
     </dialog>
 
-    @for (entity of currentData(); track resolveKey()(entity)) {
-      @let text = resolveChipText()(entity);
+    @for (entity of data(); track key()(entity)) {
+      @let text = chipText()(entity);
       <button (click)="modalConfirm(entity)">
         <span>{{text}}</span>
         <span>&nbsp;&times;</span>
@@ -49,28 +49,24 @@ export class CardChipDelete<T> {
   dialog = viewChild('dialog', { read: ElementRef<HTMLDialogElement> });
   message = viewChild('message', { read: ElementRef<HTMLParagraphElement> });
 
-  data = input.required<Array<T>>();
-  currentData = linkedSignal<Array<T>,Array<T>>({
+  data = model.required<Array<T>>();
+  /*currentData = linkedSignal<Array<T>,Array<T>>({
     source: ()=>this.data(),
     computation: ()=>{
       return this.data()
     }
-  });
+  });*/
 
   entityToRemove = signal<T>({} as T);
 
-  resolveKey = input.required<(entity: T) => string | number>();
-  resolveChipText = input.required<(entity: T) => string | number>();
-  resolveMessageText = input.required<(entity: T) => string | number>();
+  key = input.required<(entity: T) => string | number>();
+  chipText = input.required<(entity: T) => string | number>();
+  messageText = input.required<(entity: T) => string | number>();
   accept = output<T>();
 
-  cancel() {
-
-  }
-
   accepted() {
-    const diff = this.resolveKey();
-    this.currentData.update(
+    const diff = this.key();
+    this.data.update(
       (data) => 
         {
           return data.filter(
@@ -83,16 +79,10 @@ export class CardChipDelete<T> {
     this.accept.emit(this.entityToRemove());
   }
 
-
   modalConfirm(entity: T) {
     this.dialog()?.nativeElement.showModal();
     const span = this.message()?.nativeElement as HTMLParagraphElement;
-    span.innerText = '' + this.resolveMessageText()(entity);
-
-
-
+    span.innerText = '' + this.messageText()(entity);
     this.entityToRemove.set(entity);
-    
-    //accept.emit(entity)
   }
 }
