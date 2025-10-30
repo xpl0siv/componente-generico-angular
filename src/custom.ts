@@ -1,4 +1,4 @@
-import { Component, ElementRef, input, output, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, input, linkedSignal, output, signal, viewChild } from '@angular/core';
 
 export type ResolvePropsAvailable = string | number;
 export type ResolveProps<T> = (
@@ -26,16 +26,15 @@ export interface ICardChipDelete<T> {
 @Component({
   selector: 'app-card-chip-delete',
   template: `
-
-   <dialog #dialog>
+   <dialog #dialog closedby="none">
       <form method="dialog">
         <p #message>&nbsp;</p>
-        <button autofocus>Cancelar</button>
-        <button>Aceptar</button>
+        <button (click)="cancel()" autofocus>Cancelar</button>
+        <button (click)="accepted()">Aceptar</button>
       </form>
     </dialog>
 
-    @for (entity of data(); track resolveKey()(entity)) {
+    @for (entity of currentData(); track resolveKey()(entity)) {
       @let text = resolveChipText()(entity);
       <button (click)="modalConfirm(entity)">
         <span>{{text}}</span>
@@ -46,18 +45,54 @@ export interface ICardChipDelete<T> {
   `,
 })
 export class CardChipDelete<T> {
+
   dialog = viewChild('dialog', { read: ElementRef<HTMLDialogElement> });
   message = viewChild('message', { read: ElementRef<HTMLParagraphElement> });
 
   data = input.required<Array<T>>();
+  currentData = linkedSignal<Array<T>,Array<T>>({
+    source: ()=>this.data(),
+    computation: ()=>{
+      return this.data()
+    }
+  });
+
+  entityToRemove = signal<T>({} as T);
+
   resolveKey = input.required<(entity: T) => string | number>();
   resolveChipText = input.required<(entity: T) => string | number>();
   resolveMessageText = input.required<(entity: T) => string | number>();
   accept = output<T>();
+
+  cancel() {
+
+  }
+
+  accepted() {
+    const diff = this.resolveKey();
+    this.currentData.update(
+      (data) => 
+        {
+          return data.filter(
+            (entityToRemove)=>{
+              return diff(entityToRemove)!==diff(this.entityToRemove())
+            }
+          )
+        }
+      )
+    this.accept.emit(this.entityToRemove());
+  }
+
+
   modalConfirm(entity: T) {
     this.dialog()?.nativeElement.showModal();
     const span = this.message()?.nativeElement as HTMLParagraphElement;
     span.innerText = '' + this.resolveMessageText()(entity);
+
+
+
+    this.entityToRemove.set(entity);
+    
     //accept.emit(entity)
   }
 }

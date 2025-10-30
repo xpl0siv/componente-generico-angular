@@ -50,7 +50,28 @@ export class App implements ICardChipDelete<PropList> {
       prop: '1',
       prop2: 123,
       prop3: {
-        prop4: 'hola',
+        prop4: 'hola1',
+      },
+    },
+    {
+      prop: '2',
+      prop2: 555,
+      prop3: {
+        prop4: 'hola2',
+      },
+    },
+    {
+      prop: '3',
+      prop2: 333,
+      prop3: {
+        prop4: 'hola3',
+      },
+    },
+    {
+      prop: '4',
+      prop2: 222,
+      prop3: {
+        prop4: 'hola4',
       },
     },
   ];
