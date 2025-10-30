@@ -1,28 +1,5 @@
 import { Component, ElementRef, computed, input, linkedSignal, model, output, signal, viewChild } from '@angular/core';
 
-export type ResolvePropsAvailable = string | number;
-export type ResolveProps<T> = (
-  utiliza_un_nombre_descriptivo: T
-) => string | number;
-
-export interface ICardChipDelete<T> {
-  /**
-   * Utilizado para establecer el track en el `@for`
-   * @param utiliza_un_nombre_descriptivo
-   */
-  resolveKey(utiliza_un_nombre_descriptivo: T): ResolvePropsAvailable;
-  /**
-   * Utilizado para mostrar el valor en la chip
-   * @param utiliza_un_nombre_descriptivo
-   */
-  resolveChipText(utiliza_un_nombre_descriptivo: T): ResolvePropsAvailable;
-  /**
-   * Utilizado para mostrar el mensaje de confirmación
-   * @param utiliza_un_nombre_descriptivo T
-   */
-  resolveMessageText(utiliza_un_nombre_descriptivo: T): ResolvePropsAvailable;
-}
-
 @Component({
   selector: 'app-card-chip-delete',
   template: `
@@ -48,17 +25,8 @@ export class CardChipDelete<T> {
 
   dialog = viewChild('dialog', { read: ElementRef<HTMLDialogElement> });
   message = viewChild('message', { read: ElementRef<HTMLParagraphElement> });
-
   data = model.required<Array<T>>();
-  /*currentData = linkedSignal<Array<T>,Array<T>>({
-    source: ()=>this.data(),
-    computation: ()=>{
-      return this.data()
-    }
-  });*/
-
   entityToRemove = signal<T>({} as T);
-
   key = input.required<(entity: T) => string | number>();
   chipText = input.required<(entity: T) => string | number>();
   messageText = input.required<(entity: T) => string | number>();
